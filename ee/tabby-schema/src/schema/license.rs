@@ -35,11 +35,11 @@ pub struct LicenseInfo {
 
 impl LicenseInfo {
     pub fn seat_limits_for_community_license() -> usize {
-        5
+        i32::MAX as usize
     }
 
     pub fn seat_limits_for_team_license() -> usize {
-        50
+        i32::MAX as usize
     }
 
     pub fn guard_seat_limit(mut self) -> Self {
