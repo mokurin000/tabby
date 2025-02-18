@@ -18,7 +18,6 @@ import {
   cn,
   convertFilepath,
   encodeMentionPlaceHolder,
-  getFilepathFromContext,
   getRangeFromAttachmentCode,
   resolveFileNameForDisplay
 } from '@/lib/utils'
@@ -212,15 +211,32 @@ export function MessageMarkdown({
 
     setSymbolLocationMap(map => new Map(map.set(keyword, undefined)))
     const hints: LookupSymbolHint[] = []
-    if (activeSelection && activeSelection?.range) {
+
+    attachmentClientCode?.forEach(item => {
+      const code = item as AttachmentCodeItem
+
+      // FIXME(Sma1lboy): using getFilepathFromContext after refactor FileContext
       hints.push({
-        filepath: getFilepathFromContext(activeSelection),
-        location: {
-          start: activeSelection.range.start,
-          end: activeSelection.range.end
-        }
+        filepath: code.gitUrl
+          ? {
+              kind: 'git',
+              gitUrl: code.gitUrl,
+              filepath: code.filepath
+            }
+          : code.baseDir
+          ? {
+              kind: 'workspace',
+              filepath: code.filepath,
+              baseDir: code.baseDir
+            }
+          : {
+              kind: 'uri',
+              uri: code.filepath
+            },
+        location: getRangeFromAttachmentCode(code)
       })
-    }
+    })
+
     const symbolInfo = await onLookupSymbol(keyword, hints)
     setSymbolLocationMap(map => new Map(map.set(keyword, symbolInfo)))
   }
@@ -352,7 +368,7 @@ function CitationTag({
   citationSource
 }: any) {
   return (
-    <div className="inline">
+    <span>
       {showcitation && (
         <>
           {citationType === 'doc' ? (
@@ -368,7 +384,7 @@ function CitationTag({
           ) : null}
         </>
       )}
-    </div>
+    </span>
   )
 }
 
